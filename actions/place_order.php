@@ -32,9 +32,10 @@ while ($item = mysqli_fetch_assoc($cart_res)) {
     $items[] = $item;
 }
 
-// 2. Insert into orders table
+// 2. Capture payment method and Insert into orders table
+$payment_method = mysqli_real_escape_string($conn, $_POST['payment_method'] ?? 'Cash on Delivery');
 $status = "pending";
-$order_query = "INSERT INTO orders (user_id, total_amount, status) VALUES ('$user_id', '$total_amount', '$status')";
+$order_query = "INSERT INTO orders (user_id, total_amount, status, payment_method) VALUES ('$user_id', '$total_amount', '$status', '$payment_method')";
 if (mysqli_query($conn, $order_query)) {
     $order_id = mysqli_insert_id($conn);
 

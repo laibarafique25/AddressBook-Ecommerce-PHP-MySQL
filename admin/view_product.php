@@ -2,7 +2,7 @@
 include 'config.php';
 
 // Use relative paths from /admin to avoid any URL encoding issues
-$img_web_base = "../ashion-master/img/shop/";
+$img_web_base = "../assets/images/shop/";
 
 function normalize_product_image_name($val) {
     $val = trim((string)$val);
@@ -25,11 +25,8 @@ function product_image_web_url($filename) {
     $filename_no_ts_pct_replaced = str_replace('%', '_', $filename_no_ts);
 
     $candidates = [
-        ['fs' => __DIR__ . '/../ashion-master/img/shop/',    'web' => "../ashion-master/img/shop/"],
-        ['fs' => __DIR__ . '/../ashion-master/img/product/', 'web' => "../ashion-master/img/product/"],
-        ['fs' => __DIR__ . '/../assets/img/shop/',           'web' => "../assets/img/shop/"],
-        ['fs' => __DIR__ . '/../assets/img/product/',        'web' => "../assets/img/product/"],
-        ['fs' => __DIR__ . '/img/',                          'web' => "img/"],
+        ['fs' => __DIR__ . '/../assets/images/shop/',    'web' => "../assets/images/shop/"],
+        ['fs' => __DIR__ . '/../assets/images/product/', 'web' => "../assets/images/product/"],
     ];
 
     foreach ($candidates as $c) {
@@ -48,11 +45,8 @@ function product_image_debug_info($filename) {
     if ($filename === '') return ['name' => '', 'url' => '', 'exists' => []];
 
     $checks = [
-        'shop' => __DIR__ . '/../ashion-master/img/shop/' . $filename,
-        'product' => __DIR__ . '/../ashion-master/img/product/' . $filename,
-        'assets_shop' => __DIR__ . '/../assets/img/shop/' . $filename,
-        'assets_product' => __DIR__ . '/../assets/img/product/' . $filename,
-        'admin_img' => __DIR__ . '/img/' . $filename,
+        'shop' => __DIR__ . '/../assets/images/shop/' . $filename,
+        'product' => __DIR__ . '/../assets/images/product/' . $filename,
     ];
     $exists = [];
     foreach ($checks as $k => $fs) {
@@ -70,6 +64,20 @@ function product_image_debug_info($filename) {
 if (isset($_GET['del_id'])) {
     $id = (int)$_GET['del_id'];
     
+    // Check if product is in any orders first (Protect order history)
+    $check_orders = mysqli_query($con, "SELECT COUNT(*) as c FROM order_details WHERE p_id=$id");
+    $order_count = mysqli_fetch_assoc($check_orders)['c'];
+
+    if ($order_count > 0) {
+        echo "<script>alert('Cannot delete: This product is linked to " . $order_count . " completed orders. Delete orders first or mark as inactive.'); location='view_product.php';</script>";
+        exit;
+    }
+
+    // Clear dependent data that is safe to delete
+    mysqli_query($con, "DELETE FROM cart_items WHERE p_id=$id");
+    mysqli_query($con, "DELETE FROM wishlist WHERE p_id=$id");
+    mysqli_query($con, "DELETE FROM product_ratings WHERE p_id=$id");
+
     $res = mysqli_query($con, "SELECT p_image FROM product WHERE p_id=$id");
     $r = mysqli_fetch_assoc($res);
     
@@ -77,11 +85,8 @@ if (isset($_GET['del_id'])) {
         $img_name = normalize_product_image_name($r['p_image']);
         if ($img_name !== '') {
             $delete_candidates = [
-                __DIR__ . '/../ashion-master/img/shop/' . $img_name,
-                __DIR__ . '/../ashion-master/img/product/' . $img_name,
-                __DIR__ . '/../assets/img/shop/' . $img_name,
-                __DIR__ . '/../assets/img/product/' . $img_name,
-                __DIR__ . '/img/' . $img_name,
+                __DIR__ . '/../assets/images/shop/' . $img_name,
+                __DIR__ . '/../assets/images/product/' . $img_name,
             ];
             foreach ($delete_candidates as $target) {
                 if (file_exists($target)) {
@@ -92,8 +97,11 @@ if (isset($_GET['del_id'])) {
         }
     }
     
-    mysqli_query($con, "DELETE FROM product WHERE p_id=$id");
-    echo "<script>location='view_product.php';</script>"; 
+    if(mysqli_query($con, "DELETE FROM product WHERE p_id=$id")) {
+        echo "<script>alert('Product deleted successfully'); location='view_product.php';</script>";
+    } else {
+        echo "<script>alert('Error deleting product: " . mysqli_real_escape_string($con, mysqli_error($con)) . "'); location='view_product.php';</script>";
+    }
     exit;
 }
 
@@ -107,7 +115,7 @@ if (isset($_POST['add_product'])) {
     $img = '';
 
     if (!empty($_FILES['p_image']['name'])) {
-        $img_dir = "../ashion-master/img/shop";
+        $img_dir = "../assets/images/shop";
         if (!is_dir($img_dir)) {
             mkdir($img_dir, 0777, true);
         }

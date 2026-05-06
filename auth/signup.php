@@ -72,6 +72,7 @@ if (isset($_POST['register_user'])) {
         .password-container { position: relative; }
         .toggle-password { position: absolute; right: 15px; top: 45px; cursor: pointer; color: #666; z-index: 10; }
         textarea { width: 100%; border: 1px solid #ebebeb; padding: 10px 20px; font-size: 14px; color: #666666; border-radius: 5px; }
+        input.invalid { border-color: #ca1515 !important; }
     </style>
 </head>
 <body>
@@ -102,7 +103,7 @@ if (isset($_POST['register_user'])) {
                         <div class="col-lg-6">
                             <div class="checkout__form__input">
                                 <p>Full Name <span>*</span></p>
-                                <input type="text" name="user_name" id="user_name">
+                                <input type="text" name="user_name" id="user_name" required minlength="3">
                                 <span id="name_error" class="error-msg">Name must be at least 3 characters.</span>
                             </div>
                         </div>
@@ -110,7 +111,7 @@ if (isset($_POST['register_user'])) {
                         <div class="col-lg-6">
                             <div class="checkout__form__input">
                                 <p>Email Address <span>*</span></p>
-                                <input type="email" name="user_email" id="user_email">
+                                <input type="email" name="user_email" id="user_email" required>
                                 <span id="email_error" class="error-msg">Enter a valid email address.</span>
                             </div>
                         </div>
@@ -118,7 +119,7 @@ if (isset($_POST['register_user'])) {
                         <div class="col-lg-6">
                             <div class="checkout__form__input password-container">
                                 <p>Password <span>*</span></p>
-                                <input type="password" name="user_pass" id="user_pass">
+                                <input type="password" name="user_pass" id="user_pass" required minlength="8">
                                 <i class="fa fa-eye toggle-password" id="eyeIcon"></i>
                                 <span id="pass_error" class="error-msg">Password must be 8+ characters.</span>
                             </div>
@@ -127,7 +128,7 @@ if (isset($_POST['register_user'])) {
                         <div class="col-lg-6">
                             <div class="checkout__form__input">
                                 <p>Phone Number <span>*</span></p>
-                                <input type="text" name="user_phone" id="user_phone">
+                                <input type="tel" name="user_phone" id="user_phone" required pattern="[0-9]{10,15}">
                                 <span id="phone_error" class="error-msg">Valid phone: 10-15 digits.</span>
                             </div>
                         </div>
@@ -135,7 +136,7 @@ if (isset($_POST['register_user'])) {
                         <div class="col-lg-6">
                             <div class="checkout__form__input">
                                 <p>Date of Birth <span>*</span></p>
-                                <input type="date" name="user_dob" id="user_dob">
+                                <input type="date" name="user_dob" id="user_dob" required>
                                 <span id="dob_error" class="error-msg">Please select your date of birth.</span>
                             </div>
                         </div>
@@ -143,7 +144,7 @@ if (isset($_POST['register_user'])) {
                         <div class="col-lg-6">
                             <div class="checkout__form__input">
                                 <p>Address <span>*</span></p>
-                                <input type="text" name="user_address" id="user_address">
+                                <input type="text" name="user_address" id="user_address" required minlength="5">
                                 <span id="address_error" class="error-msg">Please provide your address.</span>
                             </div>
                         </div>
@@ -184,17 +185,34 @@ $('#eyeIcon').click(function() {
 $('#registrationForm').on('submit', function(e) {
     let isValid = true;
     $('.error-msg').hide();
+    $('input').removeClass('invalid');
 
-    if($('#user_name').val().trim().length < 3) { $('#name_error').show(); isValid = false; }
+    function showError(id, msgId) {
+        $(id).addClass('invalid');
+        $(msgId).show();
+        isValid = false;
+    }
+
+    if($('#user_name').val().trim().length < 3) showError('#user_name', '#name_error');
+    
     let email = $('#user_email').val().trim();
-    if(email == "" || !email.includes('@')) { $('#email_error').show(); isValid = false; }
-    if($('#user_pass').val().length < 8) { $('#pass_error').show(); isValid = false; }
+    if(email == "" || !email.includes('@')) showError('#user_email', '#email_error');
+    
+    if($('#user_pass').val().length < 8) showError('#user_pass', '#pass_error');
+    
     let phoneRegex = /^[0-9]{10,15}$/;
-    if(!phoneRegex.test($('#user_phone').val().trim())) { $('#phone_error').show(); isValid = false; }
-    if($('#user_dob').val() == "") { $('#dob_error').show(); isValid = false; }
-    if($('#user_address').val().trim().length < 5) { $('#address_error').show(); isValid = false; }
+    if(!phoneRegex.test($('#user_phone').val().trim())) showError('#user_phone', '#phone_error');
+    
+    if($('#user_dob').val() == "") showError('#user_dob', '#dob_error');
+    
+    if($('#user_address').val().trim().length < 5) showError('#user_address', '#address_error');
 
-    if(!isValid) e.preventDefault();
+    if(!isValid) {
+        e.preventDefault();
+        $('html, body').animate({
+            scrollTop: ($('.invalid').first().offset().top - 100)
+        }, 500);
+    }
 });
 </script>
 </body>

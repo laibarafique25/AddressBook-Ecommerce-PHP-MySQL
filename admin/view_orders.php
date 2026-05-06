@@ -44,6 +44,7 @@ $rows = mysqli_query($con, "SELECT o.*, u.name, u.email,
                     <th>Customer</th>
                     <th>Items</th>
                     <th>Total</th>
+                    <th>Payment</th>
                     <th>Status</th>
                     <th style="width:200px">Actions</th>
                 </tr>
@@ -62,6 +63,7 @@ $rows = mysqli_query($con, "SELECT o.*, u.name, u.email,
                     </td>
                     <td><span class="pill blue"><?= $r['items'] ?> items</span></td>
                     <td><strong>$<?= number_format($r['total_amount'], 2) ?></strong></td>
+                    <td><span class="pill outline"><?= htmlspecialchars($r['payment_method'] ?? 'N/A') ?></span></td>
                     <td><span class="pill <?= $cls ?>"><?= ucfirst($st) ?></span></td>
                     <td>
                         <button class="btn btn-soft btn-sm" data-bs-toggle="modal" data-bs-target="#order<?= $r['order_id'] ?>"><i class="fas fa-eye"></i> View</button>
@@ -74,6 +76,7 @@ $rows = mysqli_query($con, "SELECT o.*, u.name, u.email,
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title">Order #<?= $r['order_id'] ?> Details</h5>
+                                <div class="ms-auto me-3"><span class="pill outline">Payment: <?= htmlspecialchars($r['payment_method'] ?? 'N/A') ?></span></div>
                                 <button class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">

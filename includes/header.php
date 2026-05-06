@@ -15,6 +15,10 @@ $script_path = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
 $base_url = preg_replace('/\/(pages|auth|actions|includes|admin)$/', '', $script_path);
 $base_url = rtrim($base_url, '/') . '/';
 
+$current_page = basename($_SERVER['PHP_SELF']);
+$mcat_get = $_GET['mcat'] ?? '';
+$scat_get = $_GET['scat'] ?? '';
+
 
 /** @var mysqli $conn */
 function product_image_url($p_image) {
@@ -25,11 +29,14 @@ function product_image_url($p_image) {
     $basename = basename($raw);
     
     $basename_no_ts = preg_replace('/^[0-9]+_/', '', $basename);
-
     $candidates = [];
     $candidates[] = $basename;
     $candidates[] = rawurldecode($basename);
     
+    if (strpos($basename, ' ') !== false) {
+        $candidates[] = str_replace(' ', '_', $basename);
+        $candidates[] = str_replace(' ', '-', $basename);
+    }
     if (strpos($basename, '%') !== false) {
         $candidates[] = str_replace('%', '_', $basename);
     }
@@ -37,8 +44,8 @@ function product_image_url($p_image) {
     if ($basename !== $basename_no_ts) {
         $candidates[] = $basename_no_ts;
         $candidates[] = rawurldecode($basename_no_ts);
-        if (strpos($basename_no_ts, '%') !== false) {
-            $candidates[] = str_replace('%', '_', $basename_no_ts);
+        if (strpos($basename_no_ts, ' ') !== false) {
+            $candidates[] = str_replace(' ', '_', $basename_no_ts);
         }
     }
     
@@ -47,20 +54,48 @@ function product_image_url($p_image) {
     $folders = [
         ['fs' => __DIR__ . '/../assets/images/shop/',    'web' => '../assets/images/shop/'],
         ['fs' => __DIR__ . '/../assets/images/product/', 'web' => '../assets/images/product/'],
+        ['fs' => __DIR__ . '/../assets/images/',         'web' => '../assets/images/'],
+        ['fs' => __DIR__ . '/../assets/images/instagram/', 'web' => '../assets/images/instagram/'],
     ];
 
     foreach ($folders as $folder) {
+        // 1. Try candidates first (fast)
         foreach ($candidates as $name) {
             if ($name === '') continue;
             if (file_exists($folder['fs'] . $name)) {
-                // echo "Found: " . $folder['fs'] . $name . "<br>";
-                return $folder['web'] . rawurlencode($name);
+                $final_name = str_replace(' ', '%20', $name);
+                return $folder['web'] . $final_name;
+            }
+        }
+        
+        // 2. Aggressive search: look for any file that matches the basename part
+        $search_pattern = $folder['fs'] . '*' . $basename_no_ts;
+        $matches = glob($search_pattern);
+        if ($matches && count($matches) > 0) {
+            $found_file = basename($matches[0]);
+            $final_name = str_replace(' ', '%20', $found_file);
+            return $folder['web'] . $final_name;
+        }
+
+        // 3. Try with common extensions if missing or wrong
+        $extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'JPG', 'PNG', 'JPEG'];
+        $pure_name = pathinfo($basename_no_ts, PATHINFO_FILENAME);
+        foreach ($extensions as $ext) {
+            $test_name = $pure_name . '.' . $ext;
+            if (file_exists($folder['fs'] . $test_name)) {
+                $final_name = str_replace(' ', '%20', $test_name);
+                return $folder['web'] . $final_name;
             }
         }
     }
 
-    // echo "Not found, fallback: " . $folders[0]['web'] . rawurlencode($basename) . "<br>";
-    return $folders[0]['web'] . rawurlencode($basename);
+    // Direct path check as final resort
+    if (file_exists(__DIR__ . '/../' . $raw)) {
+        return '../' . $raw;
+    }
+
+    $final_basename = str_replace(' ', '%20', $basename);
+    return '../assets/images/shop/' . $final_basename;
 }
 
 // Counts initialize karein
@@ -117,6 +152,18 @@ if (isset($_SESSION['user_id'])) {
     <link rel="stylesheet" href="../assets/css/owl.carousel.min.css" type="text/css">
     <link rel="stylesheet" href="../assets/css/slicknav.min.css" type="text/css">
     <link rel="stylesheet" href="../assets/css/style.css" type="text/css">
+    <style>
+        .error-msg { 
+            color: #ca1515; 
+            font-size: 12px; 
+            font-weight: 500;
+            display: none;
+            margin-top: 3px;
+        }
+        input.invalid {
+            border-color: #ca1515 !important;
+        }
+    </style>
 
    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -174,16 +221,16 @@ if (isset($_SESSION['user_id'])) {
                 <div class="col-xl-6 col-lg-7">
                     <nav class="header__menu">
                         <ul>
-                            <li><a href="../pages/index.php">Home</a></li>
-                            <li><a href="../pages/shop.php?mcat=3">Jewellery</a></li>
-                            <li><a href="#">Cosmetics <i class="fa fa-angle-down"></i></a>
+                            <li class="<?= $current_page == 'index.php' ? 'active' : '' ?>"><a href="../pages/index.php">Home</a></li>
+                            <li class="<?= ($current_page == 'shop.php' && $mcat_get == '3') ? 'active' : '' ?>"><a href="../pages/shop.php?mcat=3">Jewellery</a></li>
+                            <li class="<?= ($current_page == 'shop.php' && ($scat_get == '10' || $scat_get == '11')) ? 'active' : '' ?>"><a href="#">Cosmetics <i class="fa fa-angle-down"></i></a>
                                 <ul class="dropdown">
-                                    <li><a href="../pages/shop.php?scat=10">Skin Care</a></li>
-                                    <li><a href="../pages/shop.php?scat=11">Makeup</a></li>
+                                    <li class="<?= $scat_get == '10' ? 'active' : '' ?>"><a href="../pages/shop.php?scat=10">Skin Care</a></li>
+                                    <li class="<?= $scat_get == '11' ? 'active' : '' ?>"><a href="../pages/shop.php?scat=11">Makeup</a></li>
                                 </ul>
                             </li>
-                            <li><a href="../pages/shop.php">Shop</a></li>
-                            <li><a href="../pages/contact.php">Contact</a></li>
+                            <li class="<?= ($current_page == 'shop.php' && $mcat_get == '' && $scat_get == '') ? 'active' : '' ?>"><a href="../pages/shop.php">Shop</a></li>
+                            <li class="<?= $current_page == 'contact.php' ? 'active' : '' ?>"><a href="../pages/contact.php">Contact</a></li>
                         </ul>
                     </nav>
                 </div>

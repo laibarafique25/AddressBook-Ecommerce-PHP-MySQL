@@ -165,6 +165,18 @@ if (isset($_POST['login_user'])) {
     <link rel="stylesheet" href="../assets/css/elegant-icons.css" type="text/css">
     <link rel="stylesheet" href="../assets/css/style.css" type="text/css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .error-msg { 
+            color: #ca1515; 
+            font-size: 12px; 
+            font-weight: 500;
+            display: none;
+            margin-top: 3px;
+        }
+        input.invalid {
+            border-color: #ca1515 !important;
+        }
+    </style>
 </head>
 <body>
 <?php require_once __DIR__ . '/../includes/alert.php'; ?>
@@ -186,29 +198,55 @@ if (isset($_POST['login_user'])) {
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-5">
-                <form action="" method="POST" class="checkout__form">
+                <form action="" method="POST" class="checkout__form" id="loginForm" novalidate>
                     <div class="row">
                         <div class="col-lg-12">
                             <h5 style="text-align: center; border-bottom: none; margin-bottom: 30px; font-weight: 700; text-transform: uppercase;">Login Account</h5>
                             
                             <div class="checkout__form__input">
                                 <p>Email <span>*</span></p>
-                                <input type="email" name="user_email" placeholder="example@mail.com" required>
+                                <input type="email" name="user_email" id="email" placeholder="example@mail.com">
+                                <span class="error-msg" id="email_err">Please enter a valid email.</span>
                             </div>
                             
                             <div class="checkout__form__input">
                                 <p>Password <span>*</span></p>
-                                <input type="password" name="user_password" placeholder="******" required>
+                                <input type="password" name="user_password" id="password" placeholder="******">
+                                <span class="error-msg" id="pass_err">Password is required.</span>
                             </div>
 
                             <div class="checkout__form__checkbox">
                                 <p>Don't have an account? <a href="../auth/signup.php" class="text-danger" style="font-weight: 600;">Register here</a></p>
+                                <p><a href="../auth/forgot_password.php" class="text-muted">Forgot Password?</a></p>
                             </div>
                             
                             <button type="submit" name="login_user" class="site-btn w-100 mt-3">Login Now</button>
                         </div>
                     </div>
                 </form>
+
+<script src="../assets/js/jquery-3.3.1.min.js"></script>
+<script>
+$('#loginForm').on('submit', function(e) {
+    let isValid = true;
+    $('.error-msg').hide();
+    $('input').removeClass('invalid');
+
+    let email = $('#email').val().trim();
+    if(email == "" || !email.includes('@')) {
+        $('#email').addClass('invalid');
+        $('#email_err').show();
+        isValid = false;
+    }
+    if($('#password').val().trim() == "") {
+        $('#password').addClass('invalid');
+        $('#pass_err').show();
+        isValid = false;
+    }
+
+    if(!isValid) e.preventDefault();
+});
+</script>
             </div>
         </div>
     </div>

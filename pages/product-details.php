@@ -24,7 +24,7 @@ if (!function_exists('get_shade_group')) {
         if (strpos($name, 'highlighter') !== false) return 'Highlighter';
         if (strpos($name, 'lipstick') !== false) return 'Lipstick';
         if (strpos($name, 'lip tint') !== false) return 'Lip Tint';
-        if (strpos($name, 'foundation') !== false || strpos($name, 'concealer') !== false || strpos($name, 'base makeup') !== false) return 'Base Makeup';
+        if (strpos($name, 'foundation') !== false || strpos($name, 'concealer') !== false || strpos($name, 'conceler') !== false || strpos($name, 'base makeup') !== false) return 'Base Makeup';
         if (strpos($name, 'blush') !== false) return 'Blush 1';
         return null;
     }
@@ -37,6 +37,24 @@ if ($shade_group) {
     $shades_res = mysqli_query($conn, "SELECT * FROM shade_cards WHERE group_name = '$shade_group'");
     if ($shades_res && mysqli_num_rows($shades_res) > 0) {
         $has_shades = true;
+    }
+}
+
+// Fetch average rating
+$rating_query = "SELECT AVG(rating) as avg_rating, COUNT(*) as total_reviews FROM product_reviews WHERE p_id = '$p_id'";
+$rating_res = mysqli_query($conn, $rating_query);
+$rating_data = mysqli_fetch_assoc($rating_res);
+$avg_rating = round($rating_data['avg_rating'], 1);
+$total_reviews = $rating_data['total_reviews'];
+
+// User's own rating if logged in
+$user_rating = 0;
+if (isset($_SESSION['user_id'])) {
+    $u_id = $_SESSION['user_id'];
+    $user_rating_q = "SELECT rating FROM product_reviews WHERE p_id = '$p_id' AND user_id = '$u_id'";
+    $user_rating_res = mysqli_query($conn, $user_rating_q);
+    if ($user_rating_row = mysqli_fetch_assoc($user_rating_res)) {
+        $user_rating = $user_rating_row['rating'];
     }
 }
 ?>
@@ -76,15 +94,37 @@ if ($shade_group) {
                 <div class="product__details__text">
                     <h3><?php echo $product['p_name']; ?></h3>
                     <div class="rating">
-                        <i class="fa fa-star"></i>
-                        <i class="fa fa-star"></i>
-                        <i class="fa fa-star"></i>
-                        <i class="fa fa-star"></i>
-                        <i class="fa fa-star"></i>
-                        <span>( Excellent Reviews )</span>
+                        <?php 
+                        for ($i = 1; $i <= 5; $i++) {
+                            if ($i <= floor($avg_rating)) {
+                                echo '<i class="fa fa-star"></i>';
+                            } elseif ($i - 0.5 <= $avg_rating) {
+                                echo '<i class="fa fa-star-half-o"></i>';
+                            } else {
+                                echo '<i class="fa fa-star-o"></i>';
+                            }
+                        }
+                        ?>
+                        <span>( <?php echo $total_reviews; ?> Reviews )</span>
                     </div>
                     <div class="product__details__price">Rs. <?php echo number_format($product['p_price']); ?></div>
                     <p style="margin-bottom: 25px;"><?php echo nl2br($product['pro_description']); ?></p>
+
+                    <div class="product__details__widget" style="padding-top: 10px; border-top: none; margin-bottom: 20px;">
+                        <h6 style="font-weight: 600; margin-bottom: 10px;">Your Rating:</h6>
+                        <form action="../actions/rate_product.php" method="POST" id="ratingForm">
+                            <input type="hidden" name="p_id" value="<?php echo $p_id; ?>">
+                            <div class="rating-input">
+                                <?php for($i=5; $i>=1; $i--): ?>
+                                    <input type="radio" name="rating" id="star<?php echo $i; ?>" value="<?php echo $i; ?>" <?php echo ($user_rating == $i) ? 'checked' : ''; ?> onchange="this.form.submit()">
+                                    <label for="star<?php echo $i; ?>" title="<?php echo $i; ?> stars"></label>
+                                <?php endfor; ?>
+                            </div>
+                            <?php if(!isset($_SESSION['user_id'])): ?>
+                                <small class="text-muted"><a href="../auth/login.php" class="text-danger">Login</a> to rate this product</small>
+                            <?php endif; ?>
+                        </form>
+                    </div>
                     
                     <form action="../actions/add_to_cart.php" method="GET">
                         <input type="hidden" name="p_id" value="<?php echo $product['p_id']; ?>">
@@ -142,7 +182,12 @@ if ($shade_group) {
             </div>
             <?php
             $scat_id = $product['scat_id'];
-            $rel_query = "SELECT * FROM product WHERE scat_id = '$scat_id' AND p_id != '$p_id' ORDER BY RAND() LIMIT 4";
+            $rel_query = "SELECT p.*, AVG(r.rating) as avg_rating 
+                         FROM product p 
+                         LEFT JOIN product_reviews r ON p.p_id = r.p_id 
+                         WHERE p.scat_id = '$scat_id' AND p.p_id != '$p_id' 
+                         GROUP BY p.p_id 
+                         ORDER BY RAND() LIMIT 4";
             $rel_res = mysqli_query($conn, $rel_query);
             if(mysqli_num_rows($rel_res) > 0) {
                 while($rel_prod = mysqli_fetch_assoc($rel_res)) {
@@ -150,7 +195,8 @@ if ($shade_group) {
             ?>
             <div class="col-lg-3 col-md-4 col-sm-6">
                 <div class="product__item">
-                    <div class="product__item__pic set-bg" data-setbg="<?php echo $rel_img; ?>" style="background-image: url('<?php echo $rel_img; ?>'); height: 360px; background-size: cover; background-position: center;">
+                    <div class="product__item__pic" style="height: 360px; overflow: hidden; position: relative;">
+                        <img src="<?php echo $rel_img; ?>" onerror="this.src='../assets/images/shop/shop-1.jpg'" alt="" style="width: 100%; height: 100%; object-fit: cover;">
                         <ul class="product__hover">
                             <li><a href="<?php echo $rel_img; ?>" class="image-popup"><span class="arrow_expand"></span></a></li>
                             <li><a href="../pages/product-details.php?id=<?php echo $rel_prod['p_id']; ?>"><span class="icon_bag_alt"></span></a></li>
@@ -159,11 +205,14 @@ if ($shade_group) {
                     <div class="product__item__text">
                         <h6><a href="../pages/product-details.php?id=<?php echo $rel_prod['p_id']; ?>"><?php echo $rel_prod['p_name']; ?></a></h6>
                         <div class="rating">
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
+                            <?php 
+                            $rel_avg = round($rel_prod['avg_rating'], 1);
+                            for ($i = 1; $i <= 5; $i++) {
+                                if ($i <= floor($rel_avg)) echo '<i class="fa fa-star"></i>';
+                                elseif ($i - 0.5 <= $rel_avg) echo '<i class="fa fa-star-half-o"></i>';
+                                else echo '<i class="fa fa-star-o"></i>';
+                            }
+                            ?>
                         </div>
                         <div class="product__price">Rs. <?php echo number_format($rel_prod['p_price']); ?></div>
                     </div>

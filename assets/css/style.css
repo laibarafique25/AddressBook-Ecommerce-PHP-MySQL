@@ -3698,3 +3698,35 @@ ol {
 		font-size: 24px;
 	}
 }
+
+/* Dynamic Rating Styles */
+.rating-input {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    margin: 10px 0 20px;
+}
+.rating-input input {
+    display: none;
+}
+.rating-input label {
+    cursor: pointer;
+    padding: 0 2px;
+    margin: 0;
+}
+.rating-input label:before {
+    content: '\f006';
+    font-family: FontAwesome;
+    font-size: 20px;
+    color: #e3c01c;
+}
+.rating-input label:hover:before,
+.rating-input label:hover ~ label:before,
+.rating-input input:checked ~ label:before {
+    content: '\f005';
+}
+.rating span.count {
+    color: #666;
+    font-size: 14px;
+    margin-left: 10px;
+}

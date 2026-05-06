@@ -1,7 +1,7 @@
 <?php
 include 'config.php';
 // Use relative paths from /admin to avoid any URL encoding issues
-$img_web_base = "../ashion-master/img/shop/";
+$img_web_base = "../assets/images/shop/";
 
 function normalize_product_image_name($val) {
     $val = trim((string)$val);
@@ -22,11 +22,8 @@ function product_image_web_url($filename) {
     $filename_no_ts_pct_replaced = str_replace('%', '_', $filename_no_ts);
 
     $candidates = [
-        ['fs' => __DIR__ . '/../ashion-master/img/shop/',    'web' => "../ashion-master/img/shop/"],
-        ['fs' => __DIR__ . '/../ashion-master/img/product/', 'web' => "../ashion-master/img/product/"],
-        ['fs' => __DIR__ . '/../assets/img/shop/',           'web' => "../assets/img/shop/"],
-        ['fs' => __DIR__ . '/../assets/img/product/',        'web' => "../assets/img/product/"],
-        ['fs' => __DIR__ . '/img/',                          'web' => "img/"],
+        ['fs' => __DIR__ . '/../assets/images/shop/',    'web' => "../assets/images/shop/"],
+        ['fs' => __DIR__ . '/../assets/images/product/', 'web' => "../assets/images/product/"],
     ];
     foreach ($candidates as $c) {
         if (file_exists($c['fs'] . $filename)) return $c['web'] . rawurlencode($filename);
@@ -37,6 +34,11 @@ function product_image_web_url($filename) {
     return $img_web_base . rawurlencode($filename);
 }
 $id=(int)($_GET['ed_id']??0);
+if($id <= 0) {
+    header("Location: view_product.php");
+    exit;
+}
+
 if (isset($_POST['update_product'])) {
     $name=mysqli_real_escape_string($con,trim($_POST['p_name']));
     $desc=mysqli_real_escape_string($con,trim($_POST['pro_description']));
@@ -45,7 +47,7 @@ if (isset($_POST['update_product'])) {
     $ccat=isset($_POST['ccat_id'])&&$_POST['ccat_id']!=''?(int)$_POST['ccat_id']:'NULL';
     $img_sql='';
     if (!empty($_FILES['p_image']['name'])) {
-        $img_dir = "../ashion-master/img/shop";
+        $img_dir = "../assets/images/shop";
         if (!is_dir($img_dir)) {
             mkdir($img_dir, 0777, true);
         }
@@ -53,17 +55,26 @@ if (isset($_POST['update_product'])) {
         move_uploaded_file($_FILES['p_image']['tmp_name'], $img_dir . '/' . $img);
         $img_sql=", p_image='$img'";
     }
-    mysqli_query($con,"UPDATE product SET p_name='$name', pro_description='$desc', p_price=$price, scat_id=$scat, ccat_id=$ccat $img_sql WHERE p_id=$id");
-    echo "<script>alert('Updated');location='view_product.php';</script>"; exit;
+    if(mysqli_query($con,"UPDATE product SET p_name='$name', pro_description='$desc', p_price=$price, scat_id=$scat, ccat_id=$ccat $img_sql WHERE p_id=$id")) {
+        echo "<script>alert('Product Updated Successfully'); location='view_product.php';</script>"; 
+    } else {
+        echo "<script>alert('Error updating product: " . mysqli_error($con) . "');</script>";
+    }
+    exit;
 }
-$row=mysqli_fetch_assoc(mysqli_query($con,"SELECT * FROM product WHERE p_id=$id"));
+$row_q = mysqli_query($con,"SELECT * FROM product WHERE p_id=$id");
+if(mysqli_num_rows($row_q) == 0) {
+    echo "<script>alert('Product not found'); location='view_product.php';</script>";
+    exit;
+}
+$row=mysqli_fetch_assoc($row_q);
 $subs=mysqli_query($con,"SELECT * FROM sub_cat ORDER BY sub_cat_name");
 $childs=mysqli_query($con,"SELECT * FROM child_cat ORDER BY ccat_name");
 include 'header.php';
 ?>
 <div class="page-header"><div><h1>Edit Product</h1><div class="crumb">Update product details</div></div></div>
 <div class="card">
-  <form method="post" enctype="multipart/form-data">
+  <form action="edit_product.php?ed_id=<?= $id ?>" method="post" enctype="multipart/form-data">
     <div class="row g-3">
       <div class="col-md-6"><div class="form-group">
         <label>Product Name</label>

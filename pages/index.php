@@ -8,7 +8,7 @@ function get_shade_group($product_name) {
     if (strpos($name, 'highlighter') !== false) return 'Highlighter';
     if (strpos($name, 'lipstick') !== false) return 'Lipstick';
     if (strpos($name, 'lip tint') !== false) return 'Lip Tint';
-    if (strpos($name, 'foundation') !== false || strpos($name, 'concealer') !== false || strpos($name, 'base makeup') !== false) return 'Base Makeup';
+    if (strpos($name, 'foundation') !== false || strpos($name, 'concealer') !== false || strpos($name, 'conceler') !== false || strpos($name, 'base makeup') !== false) return 'Base Makeup';
     if (strpos($name, 'blush') !== false) return 'Blush 1';
     return null;
 }
@@ -167,7 +167,8 @@ function slug_class($name) {
                     
                     <div class="col-lg-3 col-md-4 col-sm-6 mix <?php echo $cat_class; ?>">
                         <div class="product__item">
-                            <div class="product__item__pic set-bg" data-setbg="<?php echo $img_path; ?>" style="background-image: url('<?php echo $img_path; ?>');">
+                            <div class="product__item__pic" style="height: 360px; overflow: hidden; position: relative;">
+                                <img src="<?php echo $img_path; ?>" onerror="this.src='../assets/images/shop/shop-1.jpg'" alt="" style="width: 100%; height: 100%; object-fit: cover;">
                                 <ul class="product__hover">
                                     <li><a href="<?php echo $img_path; ?>" class="image-popup"><span class="arrow_expand"></span></a></li>
                                     
@@ -203,7 +204,11 @@ function slug_class($name) {
                                     ?>
                                 </div>
                                 <div class="product__price">Rs. <?php echo number_format($prod_row['p_price']); ?></div>
-                                <a href="../actions/add_to_cart.php?p_id=<?php echo $p_id; ?>" class="site-btn" style="padding: 8px 16px; font-size: 12px; height: auto; line-height: normal; margin-top: 10px; width: 100%; text-align: center;">Add to Cart</a>
+                                <?php if ($shade_group) { ?>
+                                    <a href="#" data-toggle="modal" data-target="#shadeModal<?php echo $p_id; ?>" class="site-btn" style="padding: 8px 16px; font-size: 12px; height: auto; line-height: normal; margin-top: 10px; width: 100%; text-align: center;">Add to Cart</a>
+                                <?php } else { ?>
+                                    <a href="../actions/add_to_cart.php?p_id=<?php echo $p_id; ?>" class="site-btn" style="padding: 8px 16px; font-size: 12px; height: auto; line-height: normal; margin-top: 10px; width: 100%; text-align: center;">Add to Cart</a>
+                                <?php } ?>
                             </div>
                         </div>
                     </div>

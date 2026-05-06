@@ -99,12 +99,51 @@ require_once __DIR__ . '/../includes/header.php';
             <div class="col-lg-6 col-md-6">
                 <div class="contact__form">
                     <h5>Send Message</h5>
-                    <form action="#">
-                        <input type="text" placeholder="Name">
-                        <input type="text" placeholder="Email">
-                        <textarea placeholder="Message"></textarea>
+                    <form action="#" id="contactForm" novalidate>
+                        <input type="text" id="name" placeholder="Name">
+                        <span class="error-msg" id="name_err">Name must be at least 3 characters.</span>
+                        
+                        <input type="email" id="email" placeholder="Email">
+                        <span class="error-msg" id="email_err">Please enter a valid email.</span>
+                        
+                        <textarea id="message" placeholder="Message"></textarea>
+                        <span class="error-msg" id="msg_err">Message must be at least 10 characters.</span>
+                        
                         <button type="submit" class="site-btn">Send Message</button>
                     </form>
+
+<script src="../assets/js/jquery-3.3.1.min.js"></script>
+<script>
+$('#contactForm').on('submit', function(e) {
+    let isValid = true;
+    $('.error-msg').hide();
+    $('input, textarea').removeClass('invalid');
+
+    if($('#name').val().trim().length < 3) {
+        $('#name').addClass('invalid');
+        $('#name_err').show();
+        isValid = false;
+    }
+    let email = $('#email').val().trim();
+    if(email == "" || !email.includes('@')) {
+        $('#email').addClass('invalid');
+        $('#email_err').show();
+        isValid = false;
+    }
+    if($('#message').val().trim().length < 10) {
+        $('#message').addClass('invalid');
+        $('#msg_err').show();
+        isValid = false;
+    }
+
+    if(!isValid) e.preventDefault();
+    else {
+        e.preventDefault();
+        alert('Message sent successfully!');
+        location.reload();
+    }
+});
+</script>
                 </div>
             </div>
         </div>

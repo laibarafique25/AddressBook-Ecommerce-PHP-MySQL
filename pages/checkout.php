@@ -27,13 +27,8 @@ if (!isset($_SESSION['user_id'])) {
     <!-- Checkout Section Begin -->
     <section class="checkout spad">
         <div class="container">
-            <div class="row">
-                <div class="col-lg-12">
-                    <h6 class="coupon__link"><span class="icon_tag_alt"></span> <a href="#">Have a coupon?</a> Click
-                    here to enter your code.</h6>
-                </div>
-            </div>
-            <form action="../actions/place_order.php" method="POST" class="checkout__form">
+
+            <form action="../actions/place_order.php" method="POST" class="checkout__form" id="checkoutForm" novalidate>
                 <div class="row">
                     <div class="col-lg-8">
                         <h5>Billing detail</h5>
@@ -41,80 +36,63 @@ if (!isset($_SESSION['user_id'])) {
                             <div class="col-lg-6 col-md-6 col-sm-6">
                                 <div class="checkout__form__input">
                                     <p>First Name <span>*</span></p>
-                                    <input type="text">
+                                    <input type="text" name="first_name" id="first_name">
+                                    <span class="error-msg" id="first_name_err">Please enter at least 2 letters.</span>
                                 </div>
                             </div>
                             <div class="col-lg-6 col-md-6 col-sm-6">
                                 <div class="checkout__form__input">
                                     <p>Last Name <span>*</span></p>
-                                    <input type="text">
+                                    <input type="text" name="last_name" id="last_name">
+                                    <span class="error-msg" id="last_name_err">Please enter at least 2 letters.</span>
                                 </div>
                             </div>
                             <div class="col-lg-12">
                                 <div class="checkout__form__input">
                                     <p>Country <span>*</span></p>
-                                    <input type="text">
+                                    <input type="text" name="country" id="country">
+                                    <span class="error-msg" id="country_err">Country is required.</span>
                                 </div>
                                 <div class="checkout__form__input">
                                     <p>Address <span>*</span></p>
-                                    <input type="text" placeholder="Street Address">
-                                    <input type="text" placeholder="Apartment. suite, unite ect ( optinal )">
+                                    <input type="text" name="address1" id="address1" placeholder="Street Address">
+                                    <span class="error-msg" id="address1_err">Address is required.</span>
+                                    <input type="text" name="address2" placeholder="Apartment. suite, unite ect ( optinal )">
                                 </div>
                                 <div class="checkout__form__input">
                                     <p>Town/City <span>*</span></p>
-                                    <input type="text">
+                                    <input type="text" name="city" id="city">
+                                    <span class="error-msg" id="city_err">City is required.</span>
                                 </div>
                                 <div class="checkout__form__input">
                                     <p>Country/State <span>*</span></p>
-                                    <input type="text">
+                                    <input type="text" name="state" id="state">
+                                    <span class="error-msg" id="state_err">State is required.</span>
                                 </div>
                                 <div class="checkout__form__input">
                                     <p>Postcode/Zip <span>*</span></p>
-                                    <input type="text">
+                                    <input type="text" name="zip" id="zip">
+                                    <span class="error-msg" id="zip_err">Valid 5+ digit zip code required.</span>
                                 </div>
                             </div>
                             <div class="col-lg-6 col-md-6 col-sm-6">
                                 <div class="checkout__form__input">
                                     <p>Phone <span>*</span></p>
-                                    <input type="text">
+                                    <input type="tel" name="phone" id="phone">
+                                    <span class="error-msg" id="phone_err">Valid 10-15 digit phone required.</span>
                                 </div>
                             </div>
                             <div class="col-lg-6 col-md-6 col-sm-6">
                                 <div class="checkout__form__input">
                                     <p>Email <span>*</span></p>
-                                    <input type="text">
+                                    <input type="email" name="email" id="email">
+                                    <span class="error-msg" id="email_err">Enter a valid email address.</span>
                                 </div>
                             </div>
-                            <div class="col-lg-12">
-                                <div class="checkout__form__checkbox">
-                                    <label for="acc">
-                                        Create an acount?
-                                        <input type="checkbox" id="acc">
-                                        <span class="checkmark"></span>
-                                    </label>
-                                    <p>Create am acount by entering the information below. If you are a returing
-                                        customer login at the <br />top of the page</p>
-                                    </div>
-                                    <div class="checkout__form__input">
-                                        <p>Account Password <span>*</span></p>
-                                        <input type="text">
-                                    </div>
-                                    <div class="checkout__form__checkbox">
-                                        <label for="note">
-                                            Note about your order, e.g, special noe for delivery
-                                            <input type="checkbox" id="note">
-                                            <span class="checkmark"></span>
-                                        </label>
-                                    </div>
-                                    <div class="checkout__form__input">
-                                        <p>Oder notes <span>*</span></p>
-                                        <input type="text"
-                                        placeholder="Note about your order, e.g, special noe for delivery">
-                                    </div>
-                                </div>
-                            </div>
+
                         </div>
-                        <div class="col-lg-4">
+                    </div>
+                    <div class="col-lg-4">
                             <div class="checkout__order">
                                 <h5>Your order</h5>
                                 <div class="checkout__order__product">
@@ -152,25 +130,23 @@ if (!isset($_SESSION['user_id'])) {
                                     </ul>
                                 </div>
                                 <div class="checkout__order__widget">
-                                    <label for="o-acc">
-                                        Create an acount?
-                                        <input type="checkbox" id="o-acc">
+                                    <label for="check-payment">
+                                        Cash on Delivery
+                                        <input type="radio" id="check-payment" name="payment_method" value="Cash on Delivery" checked>
                                         <span class="checkmark"></span>
                                     </label>
-                                    <p>Create am acount by entering the information below. If you are a returing customer
-                                    login at the top of the page.</p>
-                                    <label for="check-payment">
+                                    <label for="cheque">
                                         Cheque payment
-                                        <input type="checkbox" id="check-payment">
+                                        <input type="radio" id="cheque" name="payment_method" value="Cheque Payment">
                                         <span class="checkmark"></span>
                                     </label>
                                     <label for="paypal">
                                         PayPal
-                                        <input type="checkbox" id="paypal">
+                                        <input type="radio" id="paypal" name="payment_method" value="PayPal">
                                         <span class="checkmark"></span>
                                     </label>
                                 </div>
-                                <button type="submit" class="site-btn">Place oder</button>
+                                <button type="submit" class="site-btn">Place order</button>
                             </div>
                         </div>
                     </div>
@@ -180,62 +156,51 @@ if (!isset($_SESSION['user_id'])) {
         <!-- Checkout Section End -->
 
         <!-- Instagram Begin -->
-        <div class="instagram">
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col-lg-2 col-md-4 col-sm-4 p-0">
-                        <div class="instagram__item set-bg" data-setbg="../assets/images/instagram/insta-1.jpg">
-                            <div class="instagram__text">
-                                <i class="fa fa-instagram"></i>
-                                <a href="#">@ address_book</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-2 col-md-4 col-sm-4 p-0">
-                        <div class="instagram__item set-bg" data-setbg="../assets/images/instagram/insta-2.jpg">
-                            <div class="instagram__text">
-                                <i class="fa fa-instagram"></i>
-                                <a href="#">@ address_book</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-2 col-md-4 col-sm-4 p-0">
-                        <div class="instagram__item set-bg" data-setbg="../assets/images/instagram/insta-3.jpg">
-                            <div class="instagram__text">
-                                <i class="fa fa-instagram"></i>
-                                <a href="#">@ address_book</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-2 col-md-4 col-sm-4 p-0">
-                        <div class="instagram__item set-bg" data-setbg="../assets/images/instagram/insta-4.jpg">
-                            <div class="instagram__text">
-                                <i class="fa fa-instagram"></i>
-                                <a href="#">@ address_book</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-2 col-md-4 col-sm-4 p-0">
-                        <div class="instagram__item set-bg" data-setbg="../assets/images/instagram/insta-5.jpg">
-                            <div class="instagram__text">
-                                <i class="fa fa-instagram"></i>
-                                <a href="#">@ address_book</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-2 col-md-4 col-sm-4 p-0">
-                        <div class="instagram__item set-bg" data-setbg="../assets/images/instagram/insta-6.jpg">
-                            <div class="instagram__text">
-                                <i class="fa fa-instagram"></i>
-                                <a href="#">@ address_book</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        
+              
         <!-- Instagram End -->
 
         <?php 
 require_once __DIR__ . '/../includes/footer.php';
+?>
+
+<script>
+$(document).ready(function() {
+    $('#checkoutForm').on('submit', function(e) {
+        let isValid = true;
+        $('.error-msg').hide();
+        $('input').removeClass('invalid');
+
+        function showError(id, msgId) {
+            $(id).addClass('invalid');
+            $(msgId).show();
+            isValid = false;
+        }
+
+        // Validations
+        if($('#first_name').val().trim().length < 2) showError('#first_name', '#first_name_err');
+        if($('#last_name').val().trim().length < 2) showError('#last_name', '#last_name_err');
+        if($('#country').val().trim() == "") showError('#country', '#country_err');
+        if($('#address1').val().trim() == "") showError('#address1', '#address1_err');
+        if($('#city').val().trim() == "") showError('#city', '#city_err');
+        if($('#state').val().trim() == "") showError('#state', '#state_err');
+        
+        let zipRegex = /^[0-9]{5,}$/;
+        if(!zipRegex.test($('#zip').val().trim())) showError('#zip', '#zip_err');
+        
+        let phoneRegex = /^[0-9]{10,15}$/;
+        if(!phoneRegex.test($('#phone').val().trim())) showError('#phone', '#phone_err');
+        
+        let email = $('#email').val().trim();
+        if(email == "" || !email.includes('@')) showError('#email', '#email_err');
+
+        if(!isValid) {
+            e.preventDefault();
+            $('html, body').animate({
+                scrollTop: ($('.invalid').first().offset().top - 100)
+            }, 500);
+        }
+    });
+});
+</script>
 ?>
