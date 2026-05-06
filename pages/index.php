@@ -39,13 +39,20 @@ function slug_class($name) {
             </div>
             <div class="col-lg-6">
                 <div class="row">
+                    <?php
+                    // Fetch counts dynamically
+                    $makeup_count = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM product WHERE scat_id = 11"))['total'] ?? 0;
+                    $jewellery_count = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM product WHERE scat_id IN (SELECT sub_cat_id FROM sub_cat WHERE mcat_id = 3)"))['total'] ?? 0;
+                    $skincare_count = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM product WHERE scat_id = 10"))['total'] ?? 0;
+                    $accessories_count = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM product WHERE scat_id = 14"))['total'] ?? 0;
+                    ?>
                     <div class="col-lg-6 col-md-6 col-sm-6 p-0">
                         <div class="categories__item set-bg" data-setbg="../assets/images/mkbanner-removebg-preview.png"
                             style="background-color: #f4f4f4; background-size: contain; background-repeat: no-repeat; background-position: right center;">
                             <div class="categories__text">
                                 <h4>Makeup</h4>
-                                <p>15 items</p>
-                                <a href="../pages/shop.php">Shop now</a>
+                                <p><?php echo $makeup_count; ?> items</p>
+                                <a href="../pages/shop.php?scat=11">Shop now</a>
                             </div>
                         </div>
                     </div>
@@ -56,8 +63,8 @@ function slug_class($name) {
                 background-position: 155% center;">
                             <div class="categories__text">
                                 <h4>Jewellery</h4>
-                                <p>23 items</p>
-                                <a href="../pages/shop.php">Shop now</a>
+                                <p><?php echo $jewellery_count; ?> items</p>
+                                <a href="../pages/shop.php?mcat=3">Shop now</a>
                             </div>
                         </div>
                     </div>
@@ -65,8 +72,8 @@ function slug_class($name) {
                         <div class="categories__item set-bg" data-setbg="../assets/images/categories/category-4.jpg">
                             <div class="categories__text">
                                 <h4>Skin Care</h4>
-                                <p>15 items</p>
-                                <a href="../pages/shop.php">Shop now</a>
+                                <p><?php echo $skincare_count; ?> items</p>
+                                <a href="../pages/shop.php?scat=10">Shop now</a>
                             </div>
                         </div>
                     </div>
@@ -74,8 +81,8 @@ function slug_class($name) {
                         <div class="categories__item set-bg" data-setbg="../assets/images/categories/category-5.jpg">
                             <div class="categories__text">
                                 <h4>Accessories</h4>
-                                <p>23 items</p>
-                                <a href="../pages/shop.php">Shop now</a>
+                                <p><?php echo $accessories_count; ?> items</p>
+                                <a href="../pages/shop.php?scat=14">Shop now</a>
                             </div>
                         </div>
                     </div>
